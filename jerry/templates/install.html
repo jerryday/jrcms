@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jerry 安装程序</title>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+</head>
+<body style="background:#f2f2f2;">
+<div class="container">
+    <div class="row"><h1 style="text-align:center;">Jerry 安装程序</h1></div>
+    <div class="row">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form action="/install" method="POST">
+                    <div class="form-group">
+                        <label for="site-title">网站标题</label>
+                        <input type="text" class="form-control" id="site-title" name="site_title">
+                    </div>
+                    <div class="form-group">
+                        <label for="site-url">网站地址</label>
+                        <input type="text" class="form-control" id="site-url" name="site_url">
+                    </div>
+                    <div class="form-group">
+                        <label for="author_name">作者账号</label>
+                        <input type="text" class="form-control" id="author_name" name="author_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">登录密码</label>
+                        <input type="text" class="form-control" id="password" name="password">
+                    </div>
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

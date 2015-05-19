@@ -1,0 +1,51 @@
+{% extends "admin.html" %}
+{% block title %}撰写文章{% endblock %}
+{% block link %}{% endblock %}
+{% block content %}
+<h2 class="subtitle">撰写文章</h2>
+<form action="{{action}}" method="POST">
+    <input type="text" class="form-control" name="title" placeholder="标题" style="font-size:16px;" value="{{post.title}}"><br>
+    <textarea class="form-control" name="markdown" rows="20" style="font-family:Menlo, Monaco, Consolas, 'Courier New', monospace;">{{post.markdown}}</textarea><br>
+    <div id='post-tags' class="row">
+    {% for tag in post.tags %}
+    <div class="col-md-2">
+        <div class="input-group">
+            <input type="text" class="form-control" value="{{tag.name}}" name="tag-{{tag.id}}" readonly>
+            <span class="input-group-addon">x</span>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="col-md-2">
+        <input type="text" class="form-control" placeholder="标签" style="text-transform: lowercase;">
+    </div>
+    </div><br>
+    <button type="submit" class="btn btn-default">保存</button>
+</form>
+<script src="http://libs.useso.com/js/jquery/2.1.1/jquery.min.js"></script>
+<script>
+$('form').on('keydown', function(e) {
+    if (e.which == 9 || e.which == 13) {
+        e.preventDefault();
+    }
+});
+$('#post-tags input:last').on('keydown', function(e) {
+    // Tab or Enter, add a tag
+    if ((e.which == 9 || e.which == 13) && $(this).val()) {
+        var tag_name = $(this).val().toLowerCase();
+        $.post('/tags', {'tag_name': tag_name}, function(data) {
+            var tag_input = $('#post-tags input:last');
+            var div_new = $('<div class="col-md-2"><div class="input-group"><input type="text" class="form-control" readonly><span class="input-group-addon">x</span></div></div>');
+            var tag_new = div_new.find('input');
+            tag_input.parent().before(div_new);
+            tag_input.val('');
+            tag_input.focus();
+            tag_new.val(data.name);
+            tag_new.attr('name', 'tag-' + data.id);
+        });
+    }
+});
+$('#post-tags').on('click', '.input-group-addon', function() {
+    $(this).parent().parent().remove();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jerry 作者登录</title>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+</head>
+<body style="background:#f2f2f2;">
+<div class="container">
+    <div class="row"><h1 style="text-align:center;">Jerry 作者登录</h1></div>
+    <div class="row">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form action="{{action}}" method="POST">
+                    <div class="form-group">
+                        <label for="author_name">作者账号</label>
+                        <input type="text" class="form-control" id="author_name" name="author_name" autofocus="true">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">作者密码</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                    </div>
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

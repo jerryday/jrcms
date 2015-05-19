@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.title }}{% endblock %}
+{% block content %}
+    <h1 class="title">{{ meta.title }}</h1>
+    <div class="tags"></div>
+    <div class="content">
+        {% include post_path %}
+    </div>
+{% endblock %}
