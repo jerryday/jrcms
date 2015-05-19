@@ -2,15 +2,20 @@ __author__ = 'wangdai'
 
 from datetime import datetime
 from jerry import MODEL_BASE
-from sqlalchemy import Column, ForeignKey, Table
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, Table, PrimaryKeyConstraint
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.types import Integer, String, Text, DateTime, Boolean
 
 
 # many to many relation table
-POST_TAG = Table('post_tag', MODEL_BASE.metadata,
-                 Column('post_id', Integer, ForeignKey('post.id')),
-                 Column('tag_id', Integer, ForeignKey('tag.id')))
+class PostTag(MODEL_BASE):
+    __tablename__ = 'post_tag'
+    __table_args__ = (
+        PrimaryKeyConstraint('post_id', 'tag_id'),
+    )
+
+    post_id = Column('post_id', Integer, ForeignKey('post.id'))
+    tag_id = Column('tag_id', Integer, ForeignKey('tag.id'))
 
 
 class Post(MODEL_BASE):
@@ -28,7 +33,7 @@ class Post(MODEL_BASE):
     status = Column(String(10), nullable=False, default='normal')
 
     author = relationship('Author', backref='posts')
-    tags = relationship('Tag', secondary=POST_TAG, backref='posts')
+    tags = relationship('Tag', secondary=PostTag.__table__, backref='posts')
 
 
 class Tag(MODEL_BASE):

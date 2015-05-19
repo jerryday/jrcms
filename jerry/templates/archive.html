@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}首页{% endblock %}
+{% block content %}
+
+{% for tag in tags %}
+<p>{{tag.id}} {{tag.name}} {{tag.count}}</p>
+{% endfor %}
+{% endblock %}

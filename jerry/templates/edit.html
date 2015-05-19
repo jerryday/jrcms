@@ -23,7 +23,7 @@
 </form>
 <script src="http://libs.useso.com/js/jquery/2.1.1/jquery.min.js"></script>
 <script>
-$('form').on('keydown', function(e) {
+$('#post-tags input:last').on('keydown', function(e) {
     if (e.which == 9 || e.which == 13) {
         e.preventDefault();
     }

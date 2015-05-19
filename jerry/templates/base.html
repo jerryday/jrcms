@@ -2,14 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %}</title>
+    <title>Jerry - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    {% block link %}{% endblock %}
+    <style>
+        h2>a {color: black;}
+        h2>a:hover {color: #337ab7; text-decoration: none;}
+        pre {font-size: 14px;}
+    </style>
 </head>
-<body>
-    <div id="main">
-        <div id="header">{% block header %}{% endblock %}</div>
-        <div id="sidebar">{% block sidebar %}{% endblock %}</div>
-        <div id="content">{% block content %}{% endblock %}</div>
-        <div id="footer">{% block footer %}{% endblock %}</div>
+<body style="font-family:'Microsoft YaHei'">
+<div class="container">
+    <div class="row" style="margin:10px 0; position: relative;"><h1>wangdai的主页</h1></div>
+    <hr>
+    <div class="row">
+        <div class="col-md-2">
+            <ul class="nav nav-pills nav-stacked" style="font-size:16px;">
+                <li role="presentation"><a href="/">首页</a></li>
+                <li role="presentation"><a href="#">时间与标签</a></li>
+                <li role="presentation"><a href="#">关于</a></li>
+            </ul>
+        </div>
+        <!--<div class="col-md-1"></div>-->
+        <div class="col-md-10">{% block content %}{% endblock %}</div>
     </div>
+    <hr>
+    <div class="row">
+        <p style="text-align:center;">powered by jerry</p>
+    </div>
+</div>
 </body>
 </html>

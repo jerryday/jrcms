@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}首页{% endblock %}
+{% block content %}
+<div style="float:right">
+    {% if tag_name %}<h3 style="margin-top:0; display:inline;"><span class="label label-primary">{{tag_name}}</span></h3>{% endif %}
+    {% if author_name %}<h3 style="margin-top:0; display:inline;"><span class="label label-primary">{{author_name}}</span></h3>{% endif %}
+    {% if month %}<h3 style="margin-top:0; display:inline;"><span class="label label-primary">{{month|date_format('%Y-%m')}}</span></h3>{% endif %}
+</div>
+{% for post in posts %}
+<div class="post-meta" style="margin-bottom:20px;">
+    <h2 style="margin-top:0; font-size:26px;"><a href="/posts/{{post.id}}">{{post.title}}</a></h2>
+    <div>
+        {% for tag in post.tags %}<a href="/?tag={{tag.id}}"><span class="label label-default">{{tag.name}}</span></a> {% endfor %}
+        by <a href="/?author={{post.author.id}}">{{post.author.name}}</a> at {{post.published|date_format}}
+    </div>
+</div>
+{% endfor %}
+<nav>
+  <ul class="pager" style="text-align:left;">
+    <li {% if not prev_url %}class="disabled"{% endif %}><a {% if prev_url %}href="{{prev_url}}"{% endif %}><span aria-hidden="true">&larr;</span> 较新文章</a></li>
+    <li {% if not next_url %}class="disabled"{% endif %}><a {% if next_url %}href="{{next_url}}"{% endif %}>早期文章 <span aria-hidden="true">&rarr;</span></a></li>
+  </ul>
+</nav>
+{% endblock %}

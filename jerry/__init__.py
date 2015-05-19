@@ -38,6 +38,9 @@ MY_LOADER = jinja2.ChoiceLoader([
     jinja2.FileSystemLoader([POSTS_DIR + '/html'])
 ])
 APP.jinja_loader = MY_LOADER
+def date_format(date, format_string='%Y-%m-%d'):
+    return date.strftime(format_string)
+APP.jinja_env.filters['date_format'] = date_format
 
 import jerry.views  # register routes to APP
 import jerry.models  # register models to MODEL_BASE.metadata
