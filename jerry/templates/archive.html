@@ -1,8 +1,16 @@
 {% extends "base.html" %}
-{% block title %}首页{% endblock %}
+{% block title %}存档{% endblock %}
 {% block content %}
-
-{% for tag in tags %}
-<p>{{tag.id}} {{tag.name}} {{tag.count}}</p>
-{% endfor %}
+<div class="col-md-3">
+    <h3 style="margin-top:0;">存档</h3>
+    {% for m in month %}
+    <div class="row" style="margin-bottom:3px"><div class="col-md-8"><a href="/?month={{m}}">{{m}}</a> {{month[m]}}</p></div></div>
+    {% endfor %}
+</div>
+<div class="col-md-3">
+    <h3 style="margin-top:0;">标签</h3>
+    {% for tag in tags %}
+    <div class="row" style="margin-bottom:3px"><div class="col-md-8"><a href="/?tag={{tag.id}}">{{tag.name}}</a></div><div class="col-md-4">{{tag.count}}</div></div>
+    {% endfor %}
+</div>
 {% endblock %}

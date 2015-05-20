@@ -4,13 +4,13 @@
 {% block content %}
 {% if post %}
 <div class="post-meta" style="margin-bottom:20px;">
-    <h2 style="margin-top:0; font-size:26px;">{{post.title}}</h2>
+    <h2 style="margin-top:0; font-size:24px;">{{post.title}}</h2>
     <div>
-        {% for tag in post.tags %}<a href="/?tag={{tag.id}}"><span class="label label-default">{{tag.name}}</span></a> {% endfor %}
+        {% for tag in post.tags %}<a href="/?tag={{tag.id}}"><span class="label label-info">{{tag.name}}</span></a> {% endfor %}
         by <a href="/?author={{post.author.id}}">{{post.author.name}}</a> at {{post.published|date_format}}
     </div>
 </div>
-<div class="post-content">
+<div class="post-content fmt">
     {{post.html|safe}}
 </div>
 {% endif %}

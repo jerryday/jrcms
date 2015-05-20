@@ -1,22 +1,16 @@
 __author__ = 'wangdai'
 
-import time
-import hashlib
-import datetime
-import string
 import functools
 import math
-from pprint import pprint
-from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 import markdown
 import htmlmin
-
 from flask import render_template, request, abort, session, redirect, url_for, g, jsonify, send_from_directory
-
+from jinja2.exceptions import TemplateNotFound
 from sqlalchemy import func
 
-from jerry import APP, DB_SESSION, POSTS_DIR
+from jerry import APP, DB_SESSION
 from jerry.models import Post, Author, Tag, PostTag
 
 
@@ -57,33 +51,19 @@ def template(tpl=None):
 
 @APP.route('/')
 def index():
-    db = g.db
-
     p = int(request.args.get('p') or 1)
     tag_id = request.args.get('tag')
     author_id = request.args.get('author')
     month = request.args.get('month')
-    tag_name = None
-    author_name = None
-
-    query = db.query(Post)
-    if tag_id:
-        tag_id = int(tag_id)
-        tag_name = db.query(Tag.name).filter_by(id=tag_id).first()
-        tag_name = tag_name[0] if tag_name else None
-        query = query.join(PostTag, Post.id == PostTag.post_id).filter(PostTag.tag_id == tag_id)
-    if author_id:
-        author_id = int(author_id)
-        author_name = db.query(Author.name).filter_by(id=author_id).first()
-        author_name = author_name[0] if author_name else None
-        query = query.filter(Post.author_id == author_id)
     if month:
-        month = datetime.datetime.strptime(month, '%Y-%m')
-        query = query.filter(Post.published >= month, Post.published < month + relativedelta(months=1))
-    posts = query.filter(Post.status == 'normal').all()[10*(p-1):10*p]
+        month = datetime.strptime(month, '%Y-%m')
 
-    next_url = url_for('index', tag=tag_id, author=author_id, month=month, p=p+1) if len(posts) == 10 else None
-    prev_url = url_for('index', tag=tag_id, author=author_id, month=month, p=p-1) if p > 1 else None
+    tag_name = getattr(Tag.get(tag_id), 'name', None)
+    author_name = getattr(Author.get(author_id), 'name', None)
+    posts, count = Post.query(p=p, tag_id=tag_id, author_id=author_id, month=month)
+
+    next_url = url_for('index', p=p+1, tag=tag_id, author=author_id, month=month) if p < math.ceil(count / 10) else None
+    prev_url = url_for('index', p=p-1, tag=tag_id, author=author_id, month=month) if p > 1 else None
 
     context = dict(
         posts=posts,
@@ -108,21 +88,22 @@ def post_get(post_id):
 def archive():
     db = g.db
     dates = db.query(Post.published).all()
-    hist = {}
+    month = {}
     for d in dates:
         date_str = d.published.strftime('%Y-%m')
-        if hist.get(date_str, None) is None:
-            hist[date_str] = 1
+        if month.get(date_str, None) is None:
+            month[date_str] = 1
         else:
-            hist[date_str] += 1
+            month[date_str] += 1
 
     tags = db.query(Tag.id, Tag.name, func.count(Tag.id).label('count')).join(PostTag, Tag.id == PostTag.tag_id).group_by(Tag.id)
-    return render_template('archive.html', tags=tags)
+    return render_template('archive.html', month=month, tags=tags)
+
 
 @APP.route('/install', methods=['POST'])
 def install():
     db = g.db
-    if db.query(Author).all().count() > 0:
+    if db.query(func.count('*')).select_from(Author).scalar() > 0:
         abort(403)  # forbidden
     author_name = request.form['author_name']
     password = request.form['password']
@@ -131,6 +112,15 @@ def install():
     author = Author(author_name, password)
     db.add(author)
     db.commit()
+    return redirect(url_for('manage'))
+
+
+@APP.route('/<page>', methods=['GET'])
+def static_page(page):
+    try:
+        return render_template(page + '.html')
+    except TemplateNotFound as e:
+        abort(404)
 
 
 ##############
@@ -176,28 +166,33 @@ def edit_one(post_id):
 @APP.route('/manage', methods=['GET'])
 @login_required
 def manage():
-    db = g.db
-    start = int(request.args.get('start') or 0)
-    num = int(request.args.get('num') or 10)
-    tag_id = request.args.get('tagid')
-    post_count = db.query(func.count('*')).select_from(Post).scalar()
-    posts = db.query(Post)[start:num]
-    next_url = url_for('manage', start=start+num, tagid=tag_id) if start+num < post_count else ''
-    prev_url = url_for('manage', start=start-num, tagid=tag_id) if start-num >= 0 else ''
-    return render_template('manage.html', posts=posts, next_url=next_url, prev_url=prev_url)
+    p = int(request.args.get('p') or 1)
+    tag_id = request.args.get('tag')
+    deleted = int(request.args.get('deleted') or 0)
+
+    posts, count = Post.query(p=p, tag_id=tag_id, author_id=session['author_id'], deleted=deleted)
+
+    next_url = url_for('manage', p=p+1, tagid=tag_id) if p < math.ceil(count / 10) else ''
+    prev_url = url_for('manage', p=p-1, tagid=tag_id) if p > 1 else ''
+    return render_template('manage.html', posts=posts, next_url=next_url, prev_url=prev_url, deleted=deleted)
 
 
 @APP.route('/posts', methods=['POST'])
 @login_required
 def post_add():
-    db = g.db
+    title = request.form['title'].strip()
+    md_content = request.form['markdown'].strip()
+    tag_names = request.form.getlist('tags')
+
     post = Post()
-    post.title = request.form['title'].strip()
-    post.markdown = request.form['markdown'].strip()
-    post.html = htmlmin.minify(markdown.markdown(post.markdown, extensions=['extra', 'codehilite', 'nl2br', 'toc']))
+    post.title = title
+    post.markdown = md_content
+    post.html = htmlmin.minify(markdown.markdown(md_content, extensions=['extra', 'codehilite', 'nl2br', 'toc']))
     post.author_id = session['author_id']
-    tag_ids = [int(k[4:]) for k in request.form.keys() if k.startswith('tag-')]
-    post.tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
+    post.tags = Tag.query_and_create(tag_names)
+    post.published = post.modified = datetime.utcnow()
+
+    db = g.db
     db.add(post)
     db.commit()
     return redirect(url_for('manage'))
@@ -206,28 +201,32 @@ def post_add():
 @APP.route('/posts/<int:post_id>', methods=['POST'])
 @login_required
 def post_update(post_id):
+    title = request.form.get('title')
+    md_content = request.form.get('markdown')
+    tag_names = request.form.getlist('tags')
+
+    p = Post.get(post_id)
+    if title:
+        p.title = title.strip()
+    if md_content:
+        p.markdown = md_content.strip()
+        p.html = htmlmin.minify(markdown.markdown(md_content, extensions=['extra', 'codehilite', 'nl2br', 'toc']))
+    if tag_names:
+        p.tags = Tag.query_and_create(tag_names)
+
     db = g.db
-    title = request.form['title'].strip()
-    md_content = request.form['markdown'].strip()
-    tag_ids = [int(k[4:]) for k in request.form.keys() if k.startswith('tag-')]
-    post = db.query(Post).filter_by(id=post_id).one()
-    if post.title != title:
-        post.title = title
-    if post.markdown != md_content:
-        post.markdown = md_content
-        post.html = htmlmin.minify(markdown.markdown(post.markdown, extensions=['extra', 'codehilite', 'nl2br', 'toc']))
-    tag_equal = len(tag_ids) == len(post.tags)
-    if tag_equal:
-        for tag in post.tags:
-            if tag.id not in tag_ids:
-                tag_equal = False
-                break
-    if not tag_equal:
-        post.tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
     if db.dirty:
-        post.modified = datetime.datetime.utcnow()
-    db.commit()
+        db.commit()
     return redirect(url_for('manage'))
+
+
+@APP.route('/posts/<int:post_id>', methods=['PUT'])
+@login_required
+def post_delete_or_stick(post_id):
+    db = g.db
+    rows = db.query(Post).filter_by(id=post_id).update({request.form['column']: int(request.form['value'])})
+    db.commit()
+    return jsonify(dict(rows_affected=rows))
 
 
 @APP.route('/static/<path:path>')

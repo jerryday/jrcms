@@ -10,7 +10,7 @@
     {% for tag in post.tags %}
     <div class="col-md-2">
         <div class="input-group">
-            <input type="text" class="form-control" value="{{tag.name}}" name="tag-{{tag.id}}" readonly>
+            <input type="text" class="form-control" value="{{tag.name}}" name="tags" readonly>
             <span class="input-group-addon">x</span>
         </div>
     </div>
@@ -32,16 +32,13 @@ $('#post-tags input:last').on('keydown', function(e) {
     // Tab or Enter, add a tag
     if ((e.which == 9 || e.which == 13) && $(this).val()) {
         var tag_name = $(this).val().toLowerCase();
-        $.post('/tags', {'tag_name': tag_name}, function(data) {
-            var tag_input = $('#post-tags input:last');
-            var div_new = $('<div class="col-md-2"><div class="input-group"><input type="text" class="form-control" readonly><span class="input-group-addon">x</span></div></div>');
-            var tag_new = div_new.find('input');
-            tag_input.parent().before(div_new);
-            tag_input.val('');
-            tag_input.focus();
-            tag_new.val(data.name);
-            tag_new.attr('name', 'tag-' + data.id);
-        });
+        var tag_input = $(this);
+        var div_new = $('<div class="col-md-2"><div class="input-group"><input type="text" class="form-control" name="tags" readonly><span class="input-group-addon">x</span></div></div>');
+        var tag_new = div_new.find('input');
+        tag_new.val(tag_input.val());
+        tag_input.parent().before(div_new);
+        tag_input.val('');
+        tag_input.focus();
     }
 });
 $('#post-tags').on('click', '.input-group-addon', function() {
