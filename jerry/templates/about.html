@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}关于{% endblock %}
+{% block content %}
+<div class="post-meta" style="margin-bottom:20px;">
+    <h2 style="margin-top:0; font-size:24px;">关于jerry</h2>
+</div>
+<div class="post-content fmt">
+    <p>这是一个极简的blog管理系统，使用markdown撰写文章。页面上被<a href="http://1234n.com">达达的主页</a>所启发，在此表示感谢，不过都是我自己写的，后台设计还是很不一样的。</p>
+    <p>当时是因为很喜欢python，而且又没有找到一个好用的blog。国内csdn博客园什么的各种鱼龙混杂而且有广告，目前在用<a href="http://sf.gg">segmentfault</a>带的博客系统，但tm居然没有按tag显示的功能。wordpress就不说了，功能太多太复杂。typecho也有不如人意的地方。有一些静态博客生成器比如pelican感觉用起来也太麻烦，风格也不好看。</p>
+    <p>总之，就是对程序员友好又好看的博客系统实在太少太少，而且基本没人拿python写，所以我就写了一个。当然页面显示和交互（比如撰写文章的时候添加tag）这块很痛苦，只能拿bootstrap和jquery强行自己写。后台功能也不是特别完善，比如没有引入类似于pagedown.js的markdown编辑器，现在只支持单用户（手动在数据库里添加一个帐号应该也是可以的）。还有图片上传功能也没有做，因为没有图片服务器。</p>
+    <p>但是，这个东西终于能用了，基本的tag、置顶、软删除功能都有了，用起来应该还是比较方便的，感觉还是很欣慰。如果有人使用了这个blog管理系统，在此表示感谢。</p>
+    <p>readme啥的都还没写，后台管理也没截图，但先这样吧。</p>
+</div>
+{% endblock %}

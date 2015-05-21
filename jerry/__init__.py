@@ -9,12 +9,13 @@ from sqlalchemy.ext.declarative import declarative_base
 
 JERRY_DIR = os.path.dirname(__file__)
 DB_PATH = 'sqlite:///%s/jerry.db' % JERRY_DIR
-DB_ENGINE = create_engine(DB_PATH, echo=True)
+DB_ENGINE = create_engine(DB_PATH)
 MODEL_BASE = declarative_base(bind=DB_ENGINE)
 DB_SESSION = sessionmaker(bind=DB_ENGINE)
 
 APP = Flask(__name__)
 APP.secret_key = os.urandom(24)
+# APP.permanent_session_lifetime = 10
 APP.jinja_env.filters['date_format'] = lambda date, format_string='%Y-%m-%d': date.strftime(format_string)
 
 import jerry.views  # register routes to APP

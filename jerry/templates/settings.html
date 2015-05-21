@@ -1,0 +1,28 @@
+{% extends "admin.html" %}
+{% block title %}设置{% endblock %}
+{% block content %}
+<h2 class="subtitle">设置</h2>
+<form action="/settings" method="POST">
+    <div class="form-group">
+        <label for="site-title">网站标题</label>
+        <input type="text" class="form-control" id="site-title" name="title" value="{{title}}">
+    </div>
+    <div class="form-group">
+        <label for="site-url">网站地址（可不填）</label>
+        <input type="text" class="form-control" id="site-url" name="url" value="{{url}}">
+    </div>
+    <div class="form-group">
+        <label for="num-page">每页文章数量</label>
+        <input type="text" class="form-control" id="num-page" name="num_per_page" value="{{num_per_page}}">
+    </div>
+    <div class="form-group">
+        <label for="origin">原密码</label>
+        <input type="password" class="form-control" id="origin" name="origin">
+    </div>
+    <div class="form-group">
+        <label for="password">新密码</label>
+        <input type="password" class="form-control" id="password" name="password">
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+{% endblock %}

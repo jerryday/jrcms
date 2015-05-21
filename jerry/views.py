@@ -12,6 +12,7 @@ from sqlalchemy import func
 
 from jerry import APP, DB_SESSION
 from jerry.models import Post, Author, Tag, PostTag
+from jerry.config import SITE
 
 
 ###########################
@@ -60,9 +61,9 @@ def index():
 
     tag_name = getattr(Tag.get(tag_id), 'name', None)
     author_name = getattr(Author.get(author_id), 'name', None)
-    posts, count = Post.query(p=p, tag_id=tag_id, author_id=author_id, month=month)
+    posts, count = Post.query(p=p, num=SITE['num_per_page'], tag_id=tag_id, author_id=author_id, month=month)
 
-    next_url = url_for('index', p=p+1, tag=tag_id, author=author_id, month=month) if p < math.ceil(count / 10) else None
+    next_url = url_for('index', p=p+1, tag=tag_id, author=author_id, month=month) if p < math.ceil(count / SITE['num_per_page']) else None
     prev_url = url_for('index', p=p-1, tag=tag_id, author=author_id, month=month) if p > 1 else None
 
     context = dict(
@@ -73,6 +74,7 @@ def index():
         next_url=next_url,
         prev_url=prev_url,
         p=p,
+        title=SITE['title'],
     )
     return render_template('index.html', **context)
 
@@ -81,7 +83,7 @@ def index():
 def post_get(post_id):
     db = g.db
     post = db.query(Post).filter_by(id=post_id).first()
-    return render_template('post.html', post=post)
+    return render_template('post.html', post=post, title=SITE['title'])
 
 
 @APP.route('/archive')
@@ -97,7 +99,7 @@ def archive():
             month[date_str] += 1
 
     tags = db.query(Tag.id, Tag.name, func.count(Tag.id).label('count')).join(PostTag, Tag.id == PostTag.tag_id).group_by(Tag.id)
-    return render_template('archive.html', month=month, tags=tags)
+    return render_template('archive.html', month=month, tags=tags, title=SITE['title'])
 
 
 @APP.route('/install', methods=['POST'])
@@ -118,7 +120,7 @@ def install():
 @APP.route('/<page>', methods=['GET'])
 def static_page(page):
     try:
-        return render_template(page + '.html')
+        return render_template(page + '.html', title=SITE['title'])
     except TemplateNotFound as e:
         abort(404)
 
@@ -149,6 +151,15 @@ def login():
     return redirect(redirect_url)
 
 
+@APP.route('/logout', methods=['GET', 'POST'])
+def logout():
+    if 'author_id' in session:
+        del session['author_id']
+    if 'author_name' in session:
+        del session['author_name']
+    return redirect(url_for('index'))
+
+
 @APP.route('/edit', methods=['GET'])
 @login_required
 def edit_new():
@@ -170,9 +181,9 @@ def manage():
     tag_id = request.args.get('tag')
     deleted = int(request.args.get('deleted') or 0)
 
-    posts, count = Post.query(p=p, tag_id=tag_id, author_id=session['author_id'], deleted=deleted)
+    posts, count = Post.query(p=p, num=SITE['num_per_page'], tag_id=tag_id, author_id=session['author_id'], deleted=deleted)
 
-    next_url = url_for('manage', p=p+1, tagid=tag_id) if p < math.ceil(count / 10) else ''
+    next_url = url_for('manage', p=p+1, tagid=tag_id) if p < math.ceil(count / SITE['num_per_page']) else ''
     prev_url = url_for('manage', p=p-1, tagid=tag_id) if p > 1 else ''
     return render_template('manage.html', posts=posts, next_url=next_url, prev_url=prev_url, deleted=deleted)
 
@@ -227,6 +238,33 @@ def post_delete_or_stick(post_id):
     rows = db.query(Post).filter_by(id=post_id).update({request.form['column']: int(request.form['value'])})
     db.commit()
     return jsonify(dict(rows_affected=rows))
+
+
+@APP.route('/settings', methods=['GET'])
+@login_required
+def settings():
+    return render_template('settings.html', **SITE)
+
+
+@APP.route('/settings', methods=['POST'])
+@login_required
+def settings_update():
+    site_title = request.form.get('title')
+    site_url = request.form.get('url')
+    num_per_page = request.form.get('num_per_page')
+    origin = request.form.get('origin')
+    password = request.form.get('password')
+
+    if site_title:
+        SITE['title'] = site_title
+    if site_url:
+        SITE['url'] = site_url
+    if num_per_page:
+        SITE['num_per_page'] = int(num_per_page)
+    if origin and password:
+        g.db.query(Author).filter_by(id=session['author_id'], password=origin).update({Author.password: password})
+        g.db.commit()
+    return redirect('settings')
 
 
 @APP.route('/static/<path:path>')

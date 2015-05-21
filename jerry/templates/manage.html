@@ -2,13 +2,11 @@
 {% block title %}管理文章{% endblock %}
 {% block content %}
 <div>
-    <h2 class="subtitle" style="display:inline-block;">{% if deleted %}回收站{% else %}管理文章{% endif %}</h2>
-    {% if prev_url %}<a href="{{prev_url}}">上一页</a>
-    {% else %}上一页
-    {% endif %}
-    {% if next_url %}<a href="{{next_url}}">下一页</a>
-    {% else %}下一页
-    {% endif %}
+    <h2 class="subtitle" style="display:inline-block;">管理文章</h2>
+    <select id="category">
+        <option value="/manage" {% if not deleted %}selected{% endif %}>正常文章</option>
+        <option value="/manage?deleted=1" {% if deleted %}selected{% endif %}>已删除</option>
+    </select>
 </div>
 <table class="table table-striped">
     <tr>
@@ -30,6 +28,12 @@
     </tr>
     {% endfor %}
 </table>
+<nav>
+  <ul class="pager" style="text-align:left; margin-bottom: 0;">
+    <li {% if not prev_url %}class="disabled"{% endif %}><a {% if prev_url %}href="{{prev_url}}"{% endif %}><span aria-hidden="true">&larr;</span> 上一页</a></li>
+    <li {% if not next_url %}class="disabled"{% endif %}><a {% if next_url %}href="{{next_url}}"{% endif %}>下一页 <span aria-hidden="true">&rarr;</span></a></li>
+  </ul>
+</nav>
 <script src="http://libs.useso.com/js/jquery/2.1.1/jquery.min.js"></script>
 <script>
 $('a.update').click(function(e) {
@@ -54,6 +58,9 @@ $('a.update').click(function(e) {
     }).done(function(msg) {
         location = location;
     });
+});
+$('select#category').change(function(e) {
+    location = $(this).find('option:selected').val();
 });
 </script>
 {% endblock %}
