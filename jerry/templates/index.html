@@ -16,7 +16,7 @@
 </div>
 {% endfor %}
 <nav>
-  <ul class="pager" style="text-align:left;">
+  <ul class="pager" style="text-align:left; margin-bottom:0;">
     <li {% if not prev_url %}class="disabled"{% endif %}><a {% if prev_url %}href="{{prev_url}}"{% endif %}><span aria-hidden="true">&larr;</span> 较新文章</a></li>
     <li {% if not next_url %}class="disabled"{% endif %}><a {% if next_url %}href="{{next_url}}"{% endif %}>早期文章 <span aria-hidden="true">&rarr;</span></a></li>
   </ul>
