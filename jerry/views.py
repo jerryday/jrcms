@@ -56,11 +56,12 @@ def index():
     p = int(request.args.get('p') or 1)
     tag_id = request.args.get('tag')
     author_id = request.args.get('author')
-    month = request.args.get('month')
+    month_str = request.args.get('month')
     tag_idint = None
     author_idint = None
     tag_name = None
     author_name = None
+    month = None
 
     if tag_id:
         tag_idint = Obfuscator.restore(tag_id)
@@ -68,14 +69,17 @@ def index():
     if author_id:
         author_idint = Obfuscator.restore(author_id)
         author_name = getattr(Author.get(author_idint), 'name', None)
-    if month:
-        month = datetime.strptime(month, '%Y-%m')
+    if month_str:
+        try:
+            month = datetime.strptime(month_str, '%Y-%m')
+        except ValueError:
+            month = None
 
     posts, count = Post.query(p=p, num=SITE['num_per_page'], tag_id=tag_idint, author_id=author_idint, month=month)
 
     page_num = math.ceil(count / SITE['num_per_page'])
-    next_url = url_for('index', p=p+1, tag=tag_id, author=author_id, month=month) if p < page_num else None
-    prev_url = url_for('index', p=p-1, tag=tag_id, author=author_id, month=month) if p > 1 else None
+    next_url = url_for('index', p=p+1, tag=tag_id, author=author_id, month=month_str) if p < page_num else None
+    prev_url = url_for('index', p=p-1, tag=tag_id, author=author_id, month=month_str) if p > 1 else None
 
     context = dict(
         posts=posts,
