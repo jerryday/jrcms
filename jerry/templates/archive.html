@@ -10,7 +10,7 @@
 <div class="col-md-3">
     <h3 style="margin-top:0;">标签</h3>
     {% for tag in tags %}
-    <div class="row" style="margin-bottom:3px"><div class="col-md-8"><a href="/?tag={{tag.id}}">{{tag.name}}</a></div><div class="col-md-4">{{tag.count}}</div></div>
+    <div class="row" style="margin-bottom:3px"><div class="col-md-8"><a href="/?tag={{tag.idstr}}">{{tag.name}}</a></div><div class="col-md-4">{{tag.count}}</div></div>
     {% endfor %}
 </div>
 {% endblock %}

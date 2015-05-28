@@ -110,4 +110,3 @@ class Author(MODEL_BASE):
 
     def __repr__(self):
         return "<Author(%d, '%s', '%s')>" % (self.id, self.name, self.password)
-

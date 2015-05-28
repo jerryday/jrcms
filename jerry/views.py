@@ -13,6 +13,7 @@ from sqlalchemy import func
 from jerry import APP, DB_SESSION
 from jerry.models import Post, Author, Tag, PostTag
 from jerry.config import SITE
+from jerry.utils import Obfuscator
 
 
 ###########################
@@ -56,14 +57,24 @@ def index():
     tag_id = request.args.get('tag')
     author_id = request.args.get('author')
     month = request.args.get('month')
+    tag_idint = None
+    author_idint = None
+    tag_name = None
+    author_name = None
+
+    if tag_id:
+        tag_idint = Obfuscator.restore(tag_id)
+        tag_name = getattr(Tag.get(tag_idint), 'name', None)
+    if author_id:
+        author_idint = Obfuscator.restore(author_id)
+        author_name = getattr(Author.get(author_idint), 'name', None)
     if month:
         month = datetime.strptime(month, '%Y-%m')
 
-    tag_name = getattr(Tag.get(tag_id), 'name', None)
-    author_name = getattr(Author.get(author_id), 'name', None)
-    posts, count = Post.query(p=p, num=SITE['num_per_page'], tag_id=tag_id, author_id=author_id, month=month)
+    posts, count = Post.query(p=p, num=SITE['num_per_page'], tag_id=tag_idint, author_id=author_idint, month=month)
 
-    next_url = url_for('index', p=p+1, tag=tag_id, author=author_id, month=month) if p < math.ceil(count / SITE['num_per_page']) else None
+    page_num = math.ceil(count / SITE['num_per_page'])
+    next_url = url_for('index', p=p+1, tag=tag_id, author=author_id, month=month) if p < page_num else None
     prev_url = url_for('index', p=p-1, tag=tag_id, author=author_id, month=month) if p > 1 else None
 
     context = dict(
@@ -81,6 +92,7 @@ def index():
 
 @APP.route('/posts/<post_id>', methods=['GET'])
 def post_get(post_id):
+    post_id = Obfuscator.restore(post_id)
     db = g.db
     post = db.query(Post).filter_by(id=post_id).first()
     return render_template('post.html', post=post, title=SITE['title'])
@@ -98,7 +110,12 @@ def archive():
         else:
             month[date_str] += 1
 
-    tags = db.query(Tag.id, Tag.name, func.count(Tag.id).label('count')).join(PostTag, Tag.id == PostTag.tag_id).group_by(Tag.id)
+    tags = db.query(Tag.id, Tag.name, func.count(Tag.id).label('count'))\
+             .join(PostTag, Tag.id == PostTag.tag_id)\
+             .group_by(Tag.id).all()
+    for t in tags:
+        t.idstr = Obfuscator.obfuscate(t.id)
+
     return render_template('archive.html', month=month, tags=tags, title=SITE['title'])
 
 
@@ -166,9 +183,10 @@ def edit_new():
     return render_template('edit.html', post=None, action=url_for('post_add'), method='POST')
 
 
-@APP.route('/edit/<int:post_id>', methods=['GET'])
+@APP.route('/edit/post_id', methods=['GET'])
 @login_required
 def edit_one(post_id):
+
     db = g.db
     post = db.query(Post).filter_by(id=post_id).one()
     return render_template('edit.html', post=post, action=url_for('post_update', post_id=post_id), method='PUT')
