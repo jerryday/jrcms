@@ -187,12 +187,14 @@ def edit_new():
     return render_template('edit.html', post=None, action=url_for('post_add'), method='POST')
 
 
-@APP.route('/edit/post_id', methods=['GET'])
+@APP.route('/edit/<post_id>', methods=['GET'])
 @login_required
 def edit_one(post_id):
-
+    post_id = Obfuscator.restore(post_id)
     db = g.db
     post = db.query(Post).filter_by(id=post_id).one()
+    if not post:
+        return abort(400)
     return render_template('edit.html', post=post, action=url_for('post_update', post_id=post_id), method='PUT')
 
 
@@ -200,14 +202,19 @@ def edit_one(post_id):
 @login_required
 def manage():
     p = int(request.args.get('p') or 1)
-    tag_id = request.args.get('tag')
+    tag_id = request.args.get('tag') or None
+    tag_idint = None
+    if tag_id:
+        tag_idint = Obfuscator.restore(tag_id)
     deleted = int(request.args.get('deleted') or 0)
 
-    posts, count = Post.query(p=p, num=SITE['num_per_page'], tag_id=tag_id, author_id=session['author_id'], deleted=deleted)
+    posts, count = Post.query(p=p, num=SITE['num_per_page'], tag_id=tag_idint, author_id=session['author_id'],
+                              deleted=deleted)
 
-    next_url = url_for('manage', p=p+1, tagid=tag_id) if p < math.ceil(count / SITE['num_per_page']) else ''
-    prev_url = url_for('manage', p=p-1, tagid=tag_id) if p > 1 else ''
-    return render_template('manage.html', posts=posts, next_url=next_url, prev_url=prev_url, deleted=deleted)
+    tp = math.ceil(count / SITE['num_per_page'])
+    prev_url = url_for('manage', p=p-1, tag=tag_id) if p > 1 else ''
+    next_url = url_for('manage', p=p+1, tag=tag_id) if p < tp else ''
+    return render_template('manage.html', posts=posts, prev_url=prev_url, next_url=next_url, deleted=deleted)
 
 
 @APP.route('/posts', methods=['POST'])
