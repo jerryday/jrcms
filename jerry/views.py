@@ -2,11 +2,12 @@ __author__ = 'wangdai'
 
 import functools
 import math
+import xml.etree.ElementTree as ET
 from datetime import datetime
 
 import markdown
 import htmlmin
-from flask import render_template, request, abort, session, redirect, url_for, g, jsonify, send_from_directory
+from flask import render_template, request, abort, session, redirect, url_for, g, jsonify, send_from_directory, Response
 from jinja2.exceptions import TemplateNotFound
 from sqlalchemy import func
 
@@ -121,6 +122,27 @@ def archive():
         t.idstr = Obfuscator.obfuscate(t.id)
 
     return render_template('archive.html', month=month, tags=tags, title=SITE['title'])
+
+
+@APP.route('/rss')
+def rssfeed():
+    rss = ET.Element('rss', version='2.0')
+    channel = ET.SubElement(rss, 'channel')
+    ET.SubElement(channel, 'title').text = SITE['title']
+    ET.SubElement(channel, 'description').text = SITE['title'] + '- A blog powered by jerry.'
+    ET.SubElement(channel, 'link').text = SITE['url']
+
+    posts, count = Post.query(p=1, num=SITE['num_per_page'])
+    for p in posts:
+        item = ET.SubElement(channel, 'item')
+        ET.SubElement(item, 'title').text = p.title
+        ET.SubElement(item, 'link').text = SITE['url'] + '/posts/' + p.idstr
+        ET.SubElement(item, 'description').text = p.html
+        ET.SubElement(item, 'author').text = p.author.name
+        ET.SubElement(item, 'pubDate').text = p.published.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        for t in p.tags:
+            ET.SubElement(item, 'category').text = t.name
+    return Response(ET.tostring(rss, encoding='unicode'), mimetype='text/xml')
 
 
 @APP.route('/install', methods=['POST'])
