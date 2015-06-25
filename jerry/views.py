@@ -103,6 +103,13 @@ def post_get(post_id):
     return render_template('post.html', post=post, title=SITE['title'])
 
 
+@APP.route('/mposts/<post_id>', methods=['GET'])
+def mpost_get(post_id):
+    db = g.db
+    post = db.query(Post).filter_by(id=Obfuscator.restore(post_id)).first()
+    return render_template('mpost.html', post=post, title=SITE['title'], url=SITE['url'] + '/posts/' + post_id)
+
+
 @APP.route('/archive')
 def archive():
     db = g.db

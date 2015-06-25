@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/static/css/pygments.css">
+    <style>
+        body { font-family: "Microsoft YaHei"; }
+        pre { padding: 10px; }
+        pre, code { 
+            font-size: 13px;
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+        }
+        code {
+            padding: 2px 4px;
+            color: #c7254e;
+            background-color: #f9f2f4;
+        }
+    </style>
+</head>
+<body>
+<h1>{{post.title}}</h1>
+<div style="color: grey;">{{post.published|date_format}} {{post.author.name}} <a href="{{url}}">查看原网页</a></div>
+{{post.html|safe}}
+</body>
+</html>
