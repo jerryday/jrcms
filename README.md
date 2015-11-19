@@ -9,7 +9,7 @@ It defaults to listen on `0.0.0.0:5000` using a tornado server, you can bind you
 
 ## add the first author
 
-Out of security, it does not have a web interface for author controlling. I offer a handy python script at root director `author.py`.
+Out of security, it does not have a web interface for author controlling. I offer a handy python script at root directory `author.py`.
 
     ./author.py -au AUTHOR_NAME
 
