@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Jerry - {% block title %}{% endblock %}</title>
+    <title>jrcms - {% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css">
     {% block link %}{% endblock %}
     <style>
+        body {font-family:'Microsoft YaHei','Dejavu Sans';}
         h2>a {color: black;}
         h2>a:hover {color: #337ab7; text-decoration: none;}
         pre {border: None;}
@@ -25,7 +26,7 @@
         .fmt ul ul,.fmt ul ol,.fmt ol ul,.fmt ol ol{margin-top:0;margin-bottom:0}
     </style>
 </head>
-<body style="font-family:'Microsoft YaHei'">
+<body>
 <div class="container">
     <div class="row" style="margin:10px 0; position: relative;"><h1>{{title}}</h1></div>
     <hr>
@@ -43,7 +44,7 @@
     </div>
     <hr>
     <div class="row">
-        <p style="text-align:center;">powered by <a href="https://github.com/wangdai/jerry">jerry</a></p>
+        <p style="text-align:center;">powered by <a href="https://github.com/jerryday/jrcms">jrcms</a></p>
     </div>
 </div>
 </body>

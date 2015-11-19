@@ -17,13 +17,13 @@
     </tr>
     {% for post in posts %}
     <tr>
-        <td><a href="/edit/{{post.idstr}}">{{post.title}}</a></td>
+        <td><a href="/edit/{{post.id}}">{{post.title}}</a></td>
         <td>{% for tag in post.tags %}<a href="/manage?tag={{tag.idstr}}">{{tag.name}}</a> {% endfor %}</td>
         <td>{{post.published|date_format}}</td>
         <td>
             <a href="/posts/{{post.idstr}}">查看</a>
-            <a href="/posts/{{post.idstr}}" class="update">{% if post.sticky %}取消置顶{% else %}置顶{% endif %}</a>
-            <a href="/posts/{{post.idstr}}" class="update">{% if post.deleted %}恢复{% else %}删除{% endif %}</a>
+            <a href="/posts/{{post.id}}" class="update">{% if post.sticky %}取消置顶{% else %}置顶{% endif %}</a>
+            <a href="/posts/{{post.id}}" class="update">{% if post.deleted %}恢复{% else %}删除{% endif %}</a>
         </td>
     </tr>
     {% endfor %}

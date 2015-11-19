@@ -1,6 +1,9 @@
+#encoding: utf-8
+from __future__ import unicode_literals
+
 SITE = dict(
     num_per_page=10,
-    title='xiaodai的主页',
+    title='小呆的主页',
     url='http://blog.chenjr.cc'
 )
 

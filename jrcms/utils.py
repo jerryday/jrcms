@@ -1,7 +1,11 @@
+from __future__ import unicode_literals
+
 __author__ = 'wangdai'
 
+import sys
 import hashlib
 import base64
+import codecs
 
 
 class Obfuscator:
@@ -12,11 +16,12 @@ class Obfuscator:
 
     @staticmethod
     def bytearray_to_int(byte_arr):
-        return int.from_bytes(byte_arr, byteorder='big')
+        # return int.from_bytes(byte_arr, byteorder='big')
+        return int(codecs.encode(byte_arr, 'hex'), 16)
 
     @staticmethod
     def int_to_bytearray(num):
-        assert isinstance(num, int) and num >= 0
+        assert num >= 0
         if num == 0:
             return b'0'
         result = []
@@ -24,7 +29,10 @@ class Obfuscator:
             d, m = divmod(num, 256)
             result.append(m)
             num = d
-        return bytes(result[::-1])
+        if sys.version_info.major == 3:
+            return bytes(result[::-1])
+        else:
+            return str(bytearray(result[::-1]))
 
     @classmethod
     def obfuscate(cls, uid):
@@ -44,7 +52,7 @@ class Obfuscator:
     def restore(cls, obscure_str):
         if not obscure_str:
             return -1
-        seg_bytes = base64.urlsafe_b64decode(obscure_str)
+        seg_bytes = base64.urlsafe_b64decode(obscure_str.encode())
         seg1 = seg_bytes[:cls._head_bytes]
         seg2 = seg_bytes[cls._head_bytes:-cls._tail_bytes]
         seg3 = seg_bytes[-cls._tail_bytes:]

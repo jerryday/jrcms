@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 __author__ = 'wangdai'
 
 import os
@@ -7,9 +9,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-JERRY_DIR = os.path.dirname(__file__)
-DB_PATH = 'sqlite:///%s/jerry.db' % JERRY_DIR
-DB_ENGINE = create_engine(DB_PATH)
+PACKAGE_DIR = os.path.dirname(__file__)
+DB_NAME = 'jrcms.sqlite3'
+DB_PATH = PACKAGE_DIR + '/' + DB_NAME
+DB_ENGINE_URL = 'sqlite:///' + DB_PATH
+DB_ENGINE = create_engine(DB_ENGINE_URL)
 MODEL_BASE = declarative_base(bind=DB_ENGINE)
 DB_SESSION = sessionmaker(bind=DB_ENGINE)
 
@@ -18,9 +22,9 @@ APP.secret_key = os.urandom(24)
 # APP.permanent_session_lifetime = 10
 APP.jinja_env.filters['date_format'] = lambda date, format_string='%Y-%m-%d': date.strftime(format_string)
 
-import jerry.views  # register routes to APP
-import jerry.models  # register models to MODEL_BASE.metadata
-from jerry.utils import Obfuscator
+import jrcms.views  # register routes to APP
+import jrcms.models  # register models to MODEL_BASE.metadata
+from jrcms.utils import Obfuscator
 
 MODEL_BASE.metadata.create_all()
 MODEL_BASE.to_dict = lambda self: {c.name: getattr(self, c.name, None) for c in self.__table__.columns}

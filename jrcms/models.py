@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 __author__ = 'wangdai'
 
 from datetime import datetime
@@ -8,7 +10,7 @@ from sqlalchemy.types import Integer, String, Text, DateTime, Boolean
 from flask import g
 from dateutil.relativedelta import relativedelta
 
-from jerry import MODEL_BASE
+from . import MODEL_BASE
 
 
 # many to many relation table
@@ -103,10 +105,8 @@ class Author(MODEL_BASE):
     id = Column(Integer, primary_key=True)
     name = Column(String(40), nullable=False, unique=True)
     password = Column(String(60), nullable=False)
-
-    def __init__(self, name, password):
-        self.name = name
-        self.password = password
+    salt = Column(String(60), nullable=False)
+    ctime = Column(DateTime, nullable=False)
 
     def __repr__(self):
         return "<Author(%d, '%s', '%s')>" % (self.id, self.name, self.password)

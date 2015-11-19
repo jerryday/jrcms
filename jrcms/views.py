@@ -1,9 +1,13 @@
+from __future__ import unicode_literals
+
 __author__ = 'wangdai'
 
 import functools
 import math
+import hashlib
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from operator import itemgetter, attrgetter
 
 import markdown
 import htmlmin
@@ -11,10 +15,10 @@ from flask import render_template, request, abort, session, redirect, url_for, g
 from jinja2.exceptions import TemplateNotFound
 from sqlalchemy import func
 
-from jerry import APP, DB_SESSION
-from jerry.models import Post, Author, Tag, PostTag
-from jerry.config import SITE
-from jerry.utils import Obfuscator
+from . import APP, DB_SESSION
+from .models import Post, Author, Tag, PostTag
+from .config import SITE
+from .utils import Obfuscator
 
 
 ###########################
@@ -97,6 +101,7 @@ def index():
 
 @APP.route('/posts/<post_id>', methods=['GET'])
 def post_get(post_id):
+    print (type(post_id))
     post_id = Obfuscator.restore(post_id)
     db = g.db
     post = db.query(Post).filter_by(id=post_id).first()
@@ -113,7 +118,7 @@ def mpost_get(post_id):
 @APP.route('/archive')
 def archive():
     db = g.db
-    dates = db.query(Post.published).all()
+    dates = db.query(Post.published).filter_by(deleted=0).all()
     month = {}
     for d in dates:
         date_str = d.published.strftime('%Y-%m')
@@ -121,14 +126,25 @@ def archive():
             month[date_str] = 1
         else:
             month[date_str] += 1
+    sorted_month = sorted(month.items(), key=itemgetter(0))
+    sorted_month.reverse()
 
-    tags = db.query(Tag.id, Tag.name, func.count(Tag.id).label('count'))\
+    tag_res = db.query(Tag.id, Tag.name, func.count(Tag.id).label('count'))\
              .join(PostTag, Tag.id == PostTag.tag_id)\
+             .join(Post, Post.id == PostTag.post_id)\
+             .filter(Post.deleted == 0)\
              .group_by(Tag.id).all()
-    for t in tags:
-        t.idstr = Obfuscator.obfuscate(t.id)
-
-    return render_template('archive.html', month=month, tags=tags, title=SITE['title'])
+    tags = []
+    for t in tag_res:
+        tags.append({
+            'id': t.id,
+            'idstr': Obfuscator.obfuscate(t.id),
+            'name': t.name,
+            'count': t.count,
+        })
+    sorted_tags = sorted(tags, key=lambda x: x['count'])
+    sorted_tags.reverse()
+    return render_template('archive.html', month=sorted_month, tags=sorted_tags, title=SITE['title'])
 
 
 @APP.route('/rss')
@@ -149,22 +165,22 @@ def rssfeed():
         ET.SubElement(item, 'pubDate').text = p.published.strftime('%a, %d %b %Y %H:%M:%S GMT')
         for t in p.tags:
             ET.SubElement(item, 'category').text = t.name
-    return Response(ET.tostring(rss, encoding='unicode'), mimetype='text/xml')
+    return Response(ET.tostring(rss), mimetype='text/xml')
 
 
-@APP.route('/install', methods=['POST'])
-def install():
-    db = g.db
-    if db.query(func.count('*')).select_from(Author).scalar() > 0:
-        abort(403)  # forbidden
-    author_name = request.form['author_name']
-    password = request.form['password']
-    if not author_name or not password:
-        abort(400)  # bad request
-    author = Author(author_name, password)
-    db.add(author)
-    db.commit()
-    return redirect(url_for('manage'))
+# @APP.route('/install', methods=['POST'])
+# def install():
+#     db = g.db
+#     if db.query(func.count('*')).select_from(Author).scalar() > 0:
+#         abort(403)  # forbidden
+#     author_name = request.form['author_name']
+#     password = request.form['password']
+#     if not author_name or not password:
+#         abort(400)  # bad request
+#     author = Author(author_name, password)
+#     db.add(author)
+#     db.commit()
+#     return redirect(url_for('manage'))
 
 
 @APP.route('/<page>', methods=['GET'])
@@ -194,7 +210,7 @@ def login():
     author_name = request.form['author_name']
     password = request.form['password']
     author = db.query(Author).filter_by(name=author_name).first()
-    if not author or author.password != password:
+    if not author or author.password != hashlib.sha1((password + author.salt).encode()).hexdigest():
         return redirect('login')
     session['author_id'] = author.id
     session['author_name'] = author.name
@@ -216,10 +232,10 @@ def edit_new():
     return render_template('edit.html', post=None, action=url_for('post_add'), method='POST')
 
 
-@APP.route('/edit/<post_id>', methods=['GET'])
+@APP.route('/edit/<int:post_id>', methods=['GET'])
 @login_required
 def edit_one(post_id):
-    post_id = Obfuscator.restore(post_id)
+    # post_id = Obfuscator.restore(post_id)
     db = g.db
     post = db.query(Post).filter_by(id=post_id).one()
     if not post:
@@ -258,6 +274,7 @@ def post_add():
     post.markdown = md_content
     post.html = htmlmin.minify(markdown.markdown(md_content, extensions=['extra', 'codehilite', 'nl2br', 'toc']))
     post.author_id = session['author_id']
+    print(tag_names)
     post.tags = Tag.query_and_create(tag_names)
     post.published = post.modified = datetime.utcnow()
 
@@ -320,8 +337,11 @@ def settings_update():
     if num_per_page:
         SITE['num_per_page'] = int(num_per_page)
     if origin and password:
-        g.db.query(Author).filter_by(id=session['author_id'], password=origin).update({Author.password: password})
-        g.db.commit()
+        author = g.db.query(Author).filter_by(id=session['author_id']).one()
+        if author.password == hashlib.sha1((origin + author.salt).encode()).hexdigest():
+            author.password = hashlib.sha1((password + author.salt).encode()).hexdigest()
+            g.db.commit()
+            return redirect('login')
     return redirect('settings')
 
 

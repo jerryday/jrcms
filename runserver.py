@@ -3,7 +3,7 @@ __author__ = 'wangdai'
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from jerry import APP
+from jrcms import APP
 
 
 if __name__ == '__main__':
