@@ -102,7 +102,6 @@ def index():
 
 @APP.route('/posts/<post_id>', methods=['GET'])
 def post_get(post_id):
-    print (type(post_id))
     post_id = Obfuscator.restore(post_id)
     db = g.db
     post = db.query(Post).filter_by(id=post_id).first()
@@ -275,7 +274,6 @@ def post_add():
     post.markdown = md_content
     post.html = htmlmin.minify(markdown.markdown(md_content, extensions=['extra', 'codehilite', 'nl2br', 'toc']))
     post.author_id = session['author_id']
-    print(tag_names)
     post.tags = Tag.query_and_create(tag_names)
     post.published = post.modified = datetime.utcnow()
 
