@@ -5,7 +5,7 @@ a simple python cms using Markdown to write, compatible with **python2.7** and *
 
     nohup python runserver.py &
   
-It defaults to listen on `0.0.0.0:5000` using a tornado server, you can bind your domain with usual web server with proxypass like nginx.
+It defaults to listen on `127.0.0.1:5000` using a tornado server, you can bind your domain with usual web server with proxypass like nginx.
 
 ## add the first author
 
