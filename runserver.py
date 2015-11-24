@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 __author__ = 'wangdai'
 
 from tornado.wsgi import WSGIContainer
